@@ -23,10 +23,18 @@ pub fn fix(content: &str, headings: &[HeadingLine]) -> String {
 fn apply_fix(line: &str, h: &HeadingLine) -> String {
     let (base, crlf) = line.strip_suffix('\r').map_or((line, ""), |s| (s, "\r"));
 
-    // Structure: '#' * level + ' ' + raw_number + spacing + title
-    let prefix_len = h.level + 1;
-    let num_spacing_end = prefix_len + h.raw_number.len() + h.spacing.len();
-    let title = &base[num_spacing_end..];
+    // Derive number start: '#' * level, then skip all spaces (extractor trims them)
+    let after_hashes = &base[h.level..];
+    let leading_spaces = after_hashes.len() - after_hashes.trim_start_matches(' ').len();
+    let num_start = h.level + leading_spaces;
+    let num_end = num_start + h.raw_number.len();
+
+    // Skip ALL ASCII whitespace after the number to find the title start
+    let after_num = &base[num_end..];
+    let title_offset = after_num
+        .find(|c: char| !c.is_ascii_whitespace())
+        .unwrap_or(after_num.len());
+    let title = &after_num[title_offset..];
 
     let fixed_num = if h.raw_number.ends_with('.') {
         h.raw_number.clone()
@@ -34,7 +42,8 @@ fn apply_fix(line: &str, h: &HeadingLine) -> String {
         format!("{}.", h.raw_number)
     };
 
-    format!("{}{} {}{}", &base[..prefix_len], fixed_num, title, crlf)
+    // Preserve original spacing after '#' (only normalize number and separator)
+    format!("{}{} {}{}", &base[..num_start], fixed_num, title, crlf)
 }
 
 #[cfg(test)]
@@ -94,5 +103,17 @@ mod tests {
     fn test_non_heading_lines_unchanged() {
         let md = "# Title\n\nSome text.\n\n## 1. Section\n";
         assert_eq!(fix_str(md), md);
+    }
+
+    #[test]
+    fn test_extra_spaces_after_hashes() {
+        // ##  1 Title: two spaces after ##, extractor trims them
+        assert_eq!(fix_str("##  1 Title\n"), "##  1. Title\n");
+    }
+
+    #[test]
+    fn test_tab_before_title() {
+        // ## 1.\tTitle: tab between number and title should be normalized to one space
+        assert_eq!(fix_str("## 1.\tTitle\n"), "## 1. Title\n");
     }
 }
