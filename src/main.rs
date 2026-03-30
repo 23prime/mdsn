@@ -17,7 +17,7 @@ struct Args {
     json: bool,
 
     /// Print per-file status and a summary
-    #[arg(long, short)]
+    #[arg(long, short, conflicts_with = "json")]
     verbose: bool,
 }
 
