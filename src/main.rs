@@ -3,6 +3,7 @@ mod extractor;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use serde::Serialize;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -10,6 +11,10 @@ use std::path::PathBuf;
 struct Args {
     /// File paths or glob patterns (e.g. '**/*.md')
     patterns: Vec<String>,
+
+    /// Output results as JSON
+    #[arg(long)]
+    json: bool,
 }
 
 fn collect_files(patterns: &[String]) -> Result<Vec<PathBuf>> {
@@ -36,6 +41,20 @@ fn collect_files(patterns: &[String]) -> Result<Vec<PathBuf>> {
     Ok(files)
 }
 
+#[derive(Serialize)]
+struct JsonError {
+    file: String,
+    line: usize,
+    code: checker::ErrorCode,
+    message: String,
+}
+
+#[derive(Serialize)]
+struct JsonOutput {
+    valid: bool,
+    errors: Vec<JsonError>,
+}
+
 fn run() -> Result<bool> {
     let args = Args::parse();
 
@@ -45,6 +64,34 @@ fn run() -> Result<bool> {
     }
 
     let files = collect_files(&args.patterns)?;
+
+    if args.json {
+        let mut json_errors: Vec<JsonError> = Vec::new();
+
+        for path in &files {
+            let content = std::fs::read_to_string(path)
+                .with_context(|| format!("failed to read {}", path.display()))?;
+            let headings = extractor::extract_headings(&content);
+            let errors = checker::check(&headings);
+
+            for e in errors {
+                json_errors.push(JsonError {
+                    file: path.display().to_string(),
+                    line: e.line_no,
+                    code: e.code,
+                    message: e.message,
+                });
+            }
+        }
+
+        let output = JsonOutput {
+            valid: json_errors.is_empty(),
+            errors: json_errors,
+        };
+        println!("{}", serde_json::to_string_pretty(&output)?);
+        return Ok(!output.valid);
+    }
+
     let mut has_errors = false;
 
     for path in &files {

@@ -1,8 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::extractor::HeadingLine;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ErrorCode {
     TrailingDot,
     Spacing,
@@ -23,6 +25,7 @@ impl std::fmt::Display for ErrorCode {
     }
 }
 
+#[derive(Serialize)]
 pub struct CheckError {
     pub line_no: usize,
     pub code: ErrorCode,

@@ -7,3 +7,4 @@ msvc
 elif
 esac
 pipefail
+serde

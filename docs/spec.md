@@ -92,6 +92,39 @@ Section numbers under the same parent must be in ascending order.
 ## 1. First
 ```
 
+## Output
+
+### Text (default)
+
+Errors are written to stderr in the following format:
+
+```text
+<file>:<line>: [<CODE>] <message>
+```
+
+If no errors are found, `All section numbers are valid.` is printed to stdout.
+
+### JSON (`--json`)
+
+Pass `--json` to output results as JSON to stdout:
+
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "file": "path/to/file.md",
+      "line": 5,
+      "code": "TRAILING_DOT",
+      "message": "section number 1 requires a trailing dot (e.g., 1.)"
+    }
+  ]
+}
+```
+
+- `valid`: `true` if no errors were found, `false` otherwise
+- `errors`: array of error objects; empty when valid
+
 ## Error Messages
 
 | Code | Error Message |
