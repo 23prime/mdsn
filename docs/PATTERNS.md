@@ -72,6 +72,20 @@ json: bool,
 json: bool,
 ```
 
+### Mutually exclusive flags — use `conflicts_with`
+
+When two flags cannot be used together, declare the constraint in clap rather than
+silently ignoring one of them at runtime:
+
+```rust
+// --verbose is meaningless alongside --json; make it an error at parse time
+#[arg(long, short, conflicts_with = "json")]
+verbose: bool,
+```
+
+This surfaces the conflict in `--help` and produces a clear error message instead
+of silently swallowing the flag.
+
 ### Constrained string options — use `ValueEnum`
 
 When a flag accepts a fixed set of values, use `clap::ValueEnum` instead of `String`:
