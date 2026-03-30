@@ -60,17 +60,13 @@ Avoid asserting on exact error messages — assert on error codes, which are the
 
 ## Testing output branches
 
-Any code path that behaves differently based on `--json` must have two tests:
-one for text output and one for JSON output. Omitting the JSON path leaves
-the serialization logic untested.
+Any code path that behaves differently based on `--json` must have two tests: one for text output and one for JSON output. Omitting the JSON path leaves the serialization logic untested.
 
-This applies to `run()` itself once integration tests are added, and to any
-future helper that formats results.
+This applies to `run()` itself once integration tests are added, and to any future helper that formats results.
 
 ## Tests that change the working directory
 
-When a test calls `std::env::set_current_dir`, always restore the original
-directory with a Drop guard so it is recovered even on panic:
+When a test calls `std::env::set_current_dir`, always restore the original directory with a Drop guard so it is recovered even on panic:
 
 ```rust
 struct DirGuard(std::path::PathBuf);
@@ -86,15 +82,11 @@ std::env::set_current_dir(&tmp_dir).unwrap();
 let _guard = DirGuard(original);
 ```
 
-Without this, a panicking test leaves the process in the wrong directory and
-breaks subsequent tests that use relative paths. This pattern is required when
-testing config file loading (global vs project-local lookup).
+Without this, a panicking test leaves the process in the wrong directory and breaks subsequent tests that use relative paths. This pattern is required when testing config file loading (global vs project-local lookup).
 
 ## `#[cfg_attr(test, derive(Debug))]`
 
-When a struct is the `T` in `Result<T, _>` and tests call `.unwrap_err()`,
-the compiler requires `T: Debug`. Add a conditional derive to avoid a compile
-error without bloating release builds:
+When a struct is the `T` in `Result<T, _>` and tests call `.unwrap_err()`, the compiler requires `T: Debug`. Add a conditional derive to avoid a compile error without bloating release builds:
 
 ```rust
 #[cfg_attr(test, derive(Debug))]
@@ -104,6 +96,5 @@ pub struct MyArgs { ... }
 ## Rules
 
 - Do not read from the filesystem in checker or extractor tests — pass strings directly.
-- Place shared test fixtures (e.g. `sample_md()`) at module level with `#[cfg(test)]`,
-  not inside `mod tests { ... }`, so sibling test modules can reuse them.
+- Place shared test fixtures (e.g. `sample_md()`) at module level with `#[cfg(test)]`, not inside `mod tests { ... }`, so sibling test modules can reuse them.
 - Each test should cover a single behavior. Prefer many small tests over one large test.
