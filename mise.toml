@@ -31,17 +31,22 @@ cspell = "latest"
 # Global
 [tasks.setup]
 description = "Setup tools"
-run = ["mise trust -yq", "mise install", "lefthook install"]
+run = [
+  "mise trust -yq",
+  "mise install",
+  "lefthook install",
+  "cargo install cargo-edit",
+]
 alias = "s"
 
 [tasks.fix]
 description = "Fix all issues"
-depends = ["md-fix", "gh-fix"]
+depends = ["md-fix", "gh-fix", "rs-fix"]
 alias = "f"
 
 [tasks.check]
 description = "Check for all issues"
-depends = ["md-check", "gh-check", "spell-check"]
+depends = ["md-check", "gh-check", "spell-check", "rs-check"]
 alias = "c"
 
 [tasks.fix-and-check]
@@ -76,3 +81,51 @@ alias = "ghc"
 description = "Check spelling"
 run = "cspell . --gitignore --verbose"
 alias = "sc"
+
+# Rust
+[tasks.rs-install]
+description = "Install Rust dependencies"
+run = "cargo fetch"
+
+[tasks.rs-fix]
+description = "Fix Rust code"
+run = [
+  "cargo clippy --all-targets --all-features --no-deps --fix --allow-dirty -- -D warnings",
+  "cargo fmt",
+]
+alias = "rf"
+
+[tasks.rs-check]
+description = "Check Rust code"
+run = [{ task = "rs-lint" }, { task = "rs-test" }]
+alias = "rc"
+
+[tasks.rs-lint]
+description = "Lint Rust code"
+run = [
+  "cargo clippy --all-targets --all-features --no-deps -- -D warnings",
+  "cargo fmt -- --check",
+]
+alias = "rl"
+
+[tasks.rs-test]
+description = "Run Rust tests"
+run = ["cargo test -- --nocapture"]
+alias = "rt"
+
+[tasks.rs-run]
+description = "Run Rust application"
+run = "cargo run"
+alias = "rr"
+
+[tasks.rs-build]
+description = "Build Rust application"
+run = "cargo build"
+
+[tasks.rs-build-release]
+description = "Build Rust application in release mode"
+run = "cargo build --release"
+
+[tasks.rs-clean]
+description = "Clean Rust build artifacts"
+run = "cargo clean"

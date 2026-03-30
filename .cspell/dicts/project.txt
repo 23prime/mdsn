@@ -1,0 +1,9 @@
+mdsn
+clippy
+rustflags
+nocapture
+rustup
+msvc
+elif
+esac
+pipefail

@@ -1,0 +1,158 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: read
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Create GitHub Release
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    needs: create-release
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: false
+            archive: tar
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            use_cross: true
+            archive: tar
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            use_cross: false
+            archive: tar
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            use_cross: false
+            archive: tar
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            use_cross: false
+            archive: zip
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
+        with:
+          target: ${{ matrix.target }}
+          rustflags: ""
+          cache: false
+
+      - name: Install cross
+        if: matrix.use_cross
+        run: cargo install cross --locked
+
+      - name: Build release binary
+        shell: bash
+        run: |
+          if [ "${{ matrix.use_cross }}" = "true" ]; then
+            cross build --release --locked --target ${{ matrix.target }}
+          else
+            cargo build --release --locked --target ${{ matrix.target }}
+          fi
+
+      - name: Smoke test Windows binary
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          ./target/${{ matrix.target }}/release/mdsn.exe --help | Out-Null
+
+      - name: Package binary (tar)
+        if: matrix.archive == 'tar'
+        run: tar czf mdsn-${{ matrix.target }}.tar.gz -C target/${{ matrix.target }}/release mdsn
+
+      - name: Package binary (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $releaseDir = "target/${{ matrix.target }}/release"
+          Push-Location $releaseDir
+          try {
+            Compress-Archive -Path "mdsn.exe" -DestinationPath "${env:GITHUB_WORKSPACE}/mdsn-${{ matrix.target }}.zip"
+          } finally {
+            Pop-Location
+          }
+
+      - name: Generate checksum (tar)
+        if: matrix.archive == 'tar'
+        shell: bash
+        run: |
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum mdsn-${{ matrix.target }}.tar.gz > mdsn-${{ matrix.target }}.tar.gz.sha256
+          elif command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 mdsn-${{ matrix.target }}.tar.gz > mdsn-${{ matrix.target }}.tar.gz.sha256
+          else
+            echo "Error: neither sha256sum nor shasum is available." >&2
+            exit 1
+          fi
+
+      - name: Generate checksum (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash mdsn-${{ matrix.target }}.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  mdsn-${{ matrix.target }}.zip" | Out-File -Encoding ascii mdsn-${{ matrix.target }}.zip.sha256
+
+      - name: Upload to GitHub Release (tar)
+        if: matrix.archive == 'tar'
+        run: gh release upload "$GITHUB_REF_NAME" "mdsn-${TARGET}.tar.gz" "mdsn-${TARGET}.tar.gz.sha256"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.target }}
+
+      - name: Upload to GitHub Release (zip)
+        if: matrix.archive == 'zip'
+        run: gh release upload "$GITHUB_REF_NAME" "mdsn-${TARGET}.zip" "mdsn-${TARGET}.zip.sha256"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ matrix.target }}
+
+  tag-latest:
+    name: Update latest tag
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Update latest tag
+        run: |
+          git tag -f latest
+          git push origin latest --force
