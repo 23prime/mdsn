@@ -1,0 +1,103 @@
+# Specification: Markdown Section Numbers Checker
+
+## Overview
+
+This tool validates the consistency of section numbers in Markdown files.
+
+## Target Headings
+
+- Headings from h2 (`##`) to h6 (`######`) with numbered sections
+- Pattern: `## 1.2.3. Title`
+- h1 (`#`) is not checked (used for document title)
+
+## Section Number Format
+
+```md
+## {number}. {title}
+```
+
+- `{number}`: Dot-separated digits (e.g., `1`, `1.2`, `1.2.3`)
+- Must end with a trailing dot (e.g., `1.` not `1`)
+- Exactly one space after the trailing dot
+
+## Validation Rules
+
+### Trailing Dot Required
+
+Section numbers must end with a dot.
+
+| Input | Valid |
+| ------- | ------- |
+| `## 1. Title` | Yes |
+| `## 1 Title` | No |
+| `## 1.2. Title` | Yes |
+| `## 1.2 Title` | No |
+
+### Single Space After Number
+
+Exactly one space is required after the section number.
+
+| Input | Valid |
+| ------- | ------- |
+| `## 1. Title` | Yes |
+| `## 1.Title` | No |
+| `## 1.  Title` | No |
+
+### Level-Depth Consistency
+
+The heading level must match the depth of section number.
+
+| Heading Level | Expected Depth | Example |
+| --------------- | ---------------- | --------- |
+| h2 (`##`) | 1 | `## 1.` |
+| h3 (`###`) | 2 | `### 1.1.` |
+| h4 (`####`) | 3 | `#### 1.1.1.` |
+| h5 (`#####`) | 4 | `##### 1.1.1.1.` |
+| h6 (`######`) | 5 | `###### 1.1.1.1.1.` |
+
+### Parent Before Child
+
+A parent section must be defined before its child sections.
+
+**Valid:**
+
+```markdown
+## 1. Parent
+### 1.1. Child
+```
+
+**Invalid:**
+
+```markdown
+### 1.1. Child
+## 1. Parent
+```
+
+### Ascending Order
+
+Section numbers under the same parent must be in ascending order.
+
+**Valid:**
+
+```markdown
+## 1. First
+## 2. Second
+## 3. Third
+```
+
+**Invalid:**
+
+```markdown
+## 2. Second
+## 1. First
+```
+
+## Error Messages
+
+| Code | Error Message |
+| ------ | --------------- |
+| `TRAILING_DOT` | `section number {number} requires a trailing dot (e.g., {number}.)` |
+| `SPACING` | `section number {number} must be followed by exactly one space` |
+| `DEPTH_MISMATCH` | `heading level (h{level}) does not match section number depth {number}` |
+| `MISSING_PARENT` | `child section {child} appears before parent section {parent} is defined` |
+| `ORDER` | `headings {scope} are not in ascending order (previous: {prev}, current: {curr})` |
