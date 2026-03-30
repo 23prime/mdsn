@@ -127,3 +127,32 @@ std::fs::read_to_string(path)
 
 Fatal errors (exit code 2) propagate via `Err` from `run()`. Validation errors
 (exit code 1) are signalled by returning `Ok(true)`.
+
+## HeadingLine fields do not map to raw line byte positions
+
+`extractor.rs` trims leading spaces after the `#` run before extracting
+`raw_number` and `spacing`. As a result, `HeadingLine` fields cannot be used
+directly as byte offsets into the original line.
+
+When you need to locate the section number inside the original line (e.g. in
+`fixer.rs`), derive the position from the line itself:
+
+```rust
+// Correct: count actual spaces after '#' run in the raw line
+let after_hashes = &line[h.level..];
+let leading_spaces = after_hashes.len() - after_hashes.trim_start_matches(' ').len();
+let num_start = h.level + leading_spaces;
+
+// Wrong: assumes exactly one space after '#' run
+let num_start = h.level + 1;
+```
+
+Also, `spacing` only captures ASCII space characters — not tabs or other
+whitespace. When normalizing the separator between number and title, skip all
+ASCII whitespace:
+
+```rust
+let title_offset = after_num
+    .find(|c: char| !c.is_ascii_whitespace())
+    .unwrap_or(after_num.len());
+```
