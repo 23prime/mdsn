@@ -6,7 +6,6 @@ Markdown section numbers checker.
 
 - 🌐 **Cross-platform** — Runs on Linux, macOS, and Windows (x86\_64 / aarch64 / Apple Silicon)
 - 🔧 **JSON output** — All primary commands support `--json` for machine-readable output
-- 🤖 **CI/CD friendly** — Inject credentials via `BL_API_KEY` and `BL_SPACE` environment variables; no interactive prompts needed
 - 📦 **Single binary** — Just download and run; no extra setup required
 - ⚡ **Easy install** — Single-command installation via shell script or PowerShell
 
@@ -23,8 +22,6 @@ curl -fsSL https://raw.githubusercontent.com/23prime/mdsn/latest/install.sh | sh
 ```powershell
 irm https://raw.githubusercontent.com/23prime/mdsn/latest/install.ps1 | iex
 ```
-
-For other installation methods (building from source, etc.), see the [Documentation](https://23prime.github.io/mdsn/installation).
 
 ## Usage
 
@@ -66,5 +63,5 @@ mise run fix     # Auto fix
 ### Release
 
 ```bash
-mise run tag -- patch   # Bump version (patch / minor / major) -> create tag and push to trigger CI release
+mise run release -- patch   # Bump version (patch / minor / major) -> create tag and push to trigger CI release
 ```
