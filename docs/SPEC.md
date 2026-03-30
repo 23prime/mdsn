@@ -109,11 +109,11 @@ If no errors are found, `All section numbers are valid.` is printed to stdout.
 Pass `--verbose` (or `-v`) to print per-file processing status and a final summary to stderr:
 
 ```text
-Checking docs/intro.md...
-  docs/intro.md: OK
-Checking docs/spec.md...
-docs/spec.md:3: [TRAILING_DOT] section number 1 requires a trailing dot (e.g., 1.)
-  docs/spec.md: 1 error(s)
+Checking path/to/file1.md...
+  path/to/file1.md: OK
+Checking path/to/file2.md...
+path/to/file2.md:3: [TRAILING_DOT] section number 1 requires a trailing dot (e.g., 1.)
+  path/to/file2.md: 1 error(s)
 ---
 Checked 2 file(s), 1 error(s)
 ```
