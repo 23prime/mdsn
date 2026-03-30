@@ -1,88 +1,70 @@
-# Development Template with mise
+# mdsn - Markdown section numbers checker
 
-A Template for development with [mise](https://mise.jdx.dev).
+Markdown section numbers checker.
 
-## Getting started
+## Features
 
-### Using setup script
+- 🌐 **Cross-platform** — Runs on Linux, macOS, and Windows (x86\_64 / aarch64 / Apple Silicon)
+- 🔧 **JSON output** — All primary commands support `--json` for machine-readable output
+- 🤖 **CI/CD friendly** — Inject credentials via `BL_API_KEY` and `BL_SPACE` environment variables; no interactive prompts needed
+- 📦 **Single binary** — Just download and run; no extra setup required
+- ⚡ **Easy install** — Single-command installation via shell script or PowerShell
 
-1. Create new remote repository on GitHub.
+## Installation
 
-2. Run the setup script.
+### Linux / macOS
 
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/23prime/mise-template/main/setup.sh | bash -s -- <new-remote-url> [new-repo-name]
-    ```
+```bash
+curl -fsSL https://raw.githubusercontent.com/23prime/mdsn/latest/install.sh | sh
+```
 
-    - `<new-remote-url>` — remote URL of the pre-created repository
-    - `[new-repo-name]` — optional; defaults to the repository name derived from the URL
+### Windows
 
-### Manual steps
+```powershell
+irm https://raw.githubusercontent.com/23prime/mdsn/latest/install.ps1 | iex
+```
 
-1. Create new remote repository on GitHub.
+For other installation methods (building from source, etc.), see the [Documentation](https://23prime.github.io/mdsn/installation).
 
-2. Clone this repository.
+## Usage
 
-    ```bash
-    git clone git@github.com:23prime/mise-template.git
-    ```
+```bash
+mdsn <file.md>
+```
 
-3. Copy the cloned repository to anywhere.
+Check all `.md` files:
 
-    ```bash
-    cp -ar mise-template <new-repo-path>
-    ```
+```bash
+mdsn '**/*.md'
+```
 
-4. Into new repository.
+## Error Codes
 
-    ```bash
-    cd <new-repo-path>
-    ```
+| Code | Description |
+| ------ | ------------- |
+| `TRAILING_DOT` | Section number requires trailing dot (e.g., `1.` not `1`) |
+| `SPACING` | Exactly one space required after number |
+| `DEPTH_MISMATCH` | Heading level doesn't match number depth |
+| `MISSING_PARENT` | Parent section not defined before child |
+| `ORDER` | Section numbers not in ascending order |
 
-5. Rename remote repository to `upstream`.
+## Development
 
-    ```bash
-    git remote rename origin upstream
-    ```
+### Pre-requirements
 
-6. Add new remote repository as `origin`.
+- [mise](https://mise.jdx.dev)
+- [rustup](https://rustup.rs)
 
-    ```bash
-    git remote add origin <new-remote-url>
-    ```
+### Commands
 
-7. Check remote repositories.
+```bash
+mise run setup   # Install tools
+mise run check   # Lint / format / test
+mise run fix     # Auto fix
+```
 
-    ```bash
-    $ git remote -v
-    origin  <new-remote-url> (fetch)
-    origin  <new-remote-url> (push)
-    upstream        git@github.com:23prime/mise-template.git (fetch)
-    upstream        git@github.com:23prime/mise-template.git (push)
-    ```
+### Release
 
-8. Push to `origin`.
-
-    ```bash
-    git push -u origin main
-    ```
-
-9. If you use GitHub CLI, set the default repository.
-
-    ```bash
-    gh repo set-default <new-repo-name>
-    ```
-
-## Merge from upstream
-
-1. Fetch upstream changes.
-
-    ```bash
-    git fetch upstream
-    ```
-
-2. Merge.
-
-    ```bash
-    git merge upstream/main
-    ```
+```bash
+mise run tag -- patch   # Bump version (patch / minor / major) -> create tag and push to trigger CI release
+```
