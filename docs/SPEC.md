@@ -112,13 +112,13 @@ Pass `--verbose` (or `-v`) to print per-file processing status and a final summa
 Checking docs/intro.md...
   docs/intro.md: OK
 Checking docs/spec.md...
-docs/spec.md:3: [TRAILING_DOT] ...
+docs/spec.md:3: [TRAILING_DOT] section number 1 requires a trailing dot (e.g., 1.)
   docs/spec.md: 1 error(s)
 ---
 Checked 2 file(s), 1 error(s)
 ```
 
-Normal error output and exit codes are unchanged. Verbose output is always written to stderr.
+Per-file summaries (e.g., `docs/spec.md: OK`) are indented by two spaces to visually separate them from error lines. Normal error output and exit codes are unchanged. Verbose output is always written to stderr.
 
 ### JSON (`--json`)
 
