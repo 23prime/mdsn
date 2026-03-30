@@ -1,5 +1,6 @@
 mod checker;
 mod extractor;
+mod fixer;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -19,6 +20,10 @@ struct Args {
     /// Print per-file status and a summary
     #[arg(long, short, conflicts_with = "json")]
     verbose: bool,
+
+    /// Auto-fix TRAILING_DOT and SPACING errors in place
+    #[arg(long, conflicts_with = "json")]
+    fix: bool,
 }
 
 fn collect_files(patterns: &[String]) -> Result<Vec<PathBuf>> {
@@ -106,6 +111,19 @@ fn run() -> Result<bool> {
 
         let content = std::fs::read_to_string(path)
             .with_context(|| format!("failed to read {}", path.display()))?;
+
+        let content = if args.fix {
+            let headings = extractor::extract_headings(&content);
+            let fixed = fixer::fix(&content, &headings);
+            if fixed != content {
+                std::fs::write(path, &fixed)
+                    .with_context(|| format!("failed to write {}", path.display()))?;
+            }
+            fixed
+        } else {
+            content
+        };
+
         let headings = extractor::extract_headings(&content);
         let errors = checker::check(&headings);
 
