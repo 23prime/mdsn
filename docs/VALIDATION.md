@@ -12,18 +12,13 @@ Each layer validates only what it owns. Do not leak logic across layers.
 
 ## `main.rs` (clap)
 
-Handle only what clap can check from the argument definition: required flags,
-type coercion (e.g. "cannot parse as integer"), mutex groups.
+Handle only what clap can check from the argument definition: required flags, type coercion (e.g. "cannot parse as integer"), mutex groups.
 
-Do **not** add domain-level constraints here. For example, "at least one pattern
-must be provided" is currently checked with a manual guard in `run()` — keep it
-there, not in an `#[arg]` attribute.
+Do **not** add domain-level constraints here. For example, "at least one pattern must be provided" is currently checked with a manual guard in `run()` — keep it there, not in an `#[arg]` attribute.
 
 ## `extractor.rs`
 
-`extract_headings` parses every line and returns a `Vec<HeadingLine>`. It does not
-validate correctness — it just extracts structure. A `HeadingLine` may represent
-an invalid section number; that is the checker's responsibility.
+`extract_headings` parses every line and returns a `Vec<HeadingLine>`. It does not validate correctness — it just extracts structure. A `HeadingLine` may represent an invalid section number; that is the checker's responsibility.
 
 What the extractor does:
 
@@ -53,8 +48,7 @@ Do **not** add I/O, file reading, or output formatting to `checker.rs`.
 
 ## Args validation with `try_new`
 
-Use a fallible constructor when construction can fail due to a domain invariant
-that cannot be expressed in the clap definition:
+Use a fallible constructor when construction can fail due to a domain invariant that cannot be expressed in the clap definition:
 
 ```rust
 impl MyArgs {

@@ -9,8 +9,7 @@ src/
 └── checker.rs    # Validation logic → CheckError
 ```
 
-Each layer has a single responsibility. Do not put validation logic in `main.rs`
-or output logic in `checker.rs`.
+Each layer has a single responsibility. Do not put validation logic in `main.rs` or output logic in `checker.rs`.
 
 ## Adding a new validation rule
 
@@ -52,8 +51,7 @@ errors.push(CheckError {
 
 ### 3. Add tests
 
-Add a `#[test]` in `checker::tests` that asserts the new code appears in the
-output for a triggering input (see Testing Guide).
+Add a `#[test]` in `checker::tests` that asserts the new code appears in the output for a triggering input (see Testing Guide).
 
 ## clap patterns
 
@@ -74,8 +72,7 @@ json: bool,
 
 ### Mutually exclusive flags — use `conflicts_with`
 
-When two flags cannot be used together, declare the constraint in clap rather than
-silently ignoring one of them at runtime:
+When two flags cannot be used together, declare the constraint in clap rather than silently ignoring one of them at runtime:
 
 ```rust
 // --verbose is meaningless alongside --json; make it an error at parse time
@@ -83,8 +80,7 @@ silently ignoring one of them at runtime:
 verbose: bool,
 ```
 
-This surfaces the conflict in `--help` and produces a clear error message instead
-of silently swallowing the flag.
+This surfaces the conflict in `--help` and produces a clear error message instead of silently swallowing the flag.
 
 ### Constrained string options — use `ValueEnum`
 
@@ -104,8 +100,7 @@ This gives automatic `--help` documentation and compile-time exhaustiveness.
 
 `main.rs` controls output. `checker.rs` only returns `Vec<CheckError>` — it never prints.
 
-Text errors go to **stderr**; success messages and JSON go to **stdout**. This allows
-`mdsn '**/*.md' | jq ...` to work correctly in JSON mode.
+Text errors go to **stderr**; success messages and JSON go to **stdout**. This allows `mdsn '**/*.md' | jq ...` to work correctly in JSON mode.
 
 When adding a new output mode, keep the branching in `run()` and keep `checker.rs` unchanged.
 
@@ -125,5 +120,28 @@ std::fs::read_to_string(path)
     .with_context(|| format!("failed to read {}", path.display()))?;
 ```
 
-Fatal errors (exit code 2) propagate via `Err` from `run()`. Validation errors
-(exit code 1) are signalled by returning `Ok(true)`.
+Fatal errors (exit code 2) propagate via `Err` from `run()`. Validation errors (exit code 1) are signalled by returning `Ok(true)`.
+
+## HeadingLine fields do not map to raw line byte positions
+
+`extractor.rs` trims leading spaces after the `#` run before extracting `raw_number` and `spacing`. As a result, `HeadingLine` fields cannot be used directly as byte offsets into the original line.
+
+When you need to locate the section number inside the original line (e.g. in `fixer.rs`), derive the position from the line itself:
+
+```rust
+// Correct: count actual spaces after '#' run in the raw line
+let after_hashes = &line[h.level..];
+let leading_spaces = after_hashes.len() - after_hashes.trim_start_matches(' ').len();
+let num_start = h.level + leading_spaces;
+
+// Wrong: assumes exactly one space after '#' run
+let num_start = h.level + 1;
+```
+
+Also, `spacing` only captures ASCII space characters — not tabs or other whitespace. When normalizing the separator between number and title, skip all ASCII whitespace:
+
+```rust
+let title_offset = after_num
+    .find(|c: char| !c.is_ascii_whitespace())
+    .unwrap_or(after_num.len());
+```

@@ -122,11 +122,9 @@ Per-file summaries (e.g., `docs/spec.md: OK`) are indented by two spaces to visu
 
 ### Fix (`--fix`)
 
-Pass `--fix` to automatically correct `TRAILING_DOT` and `SPACING` errors in place. After
-fixing, any remaining errors are reported to stderr and the exit code reflects them.
+Pass `--fix` to automatically correct `TRAILING_DOT` and `SPACING` errors in place. After fixing, any remaining errors are reported to stderr and the exit code reflects them.
 
-Errors that require human judgment (`DEPTH_MISMATCH`, `MISSING_PARENT`, `ORDER`) are not
-modified.
+Errors that require human judgment (`DEPTH_MISMATCH`, `MISSING_PARENT`, `ORDER`) are not modified.
 
 `--fix` cannot be combined with `--json`.
 
