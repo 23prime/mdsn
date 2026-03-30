@@ -15,6 +15,10 @@ struct Args {
     /// Output results as JSON
     #[arg(long)]
     json: bool,
+
+    /// Print per-file status and a summary
+    #[arg(long, short)]
+    verbose: bool,
 }
 
 fn collect_files(patterns: &[String]) -> Result<Vec<PathBuf>> {
@@ -93,13 +97,19 @@ fn run() -> Result<bool> {
     }
 
     let mut has_errors = false;
+    let mut total_errors: usize = 0;
 
     for path in &files {
+        if args.verbose {
+            eprintln!("Checking {}...", path.display());
+        }
+
         let content = std::fs::read_to_string(path)
             .with_context(|| format!("failed to read {}", path.display()))?;
         let headings = extractor::extract_headings(&content);
         let errors = checker::check(&headings);
 
+        let error_count = errors.len();
         for e in &errors {
             has_errors = true;
             eprintln!(
@@ -110,6 +120,20 @@ fn run() -> Result<bool> {
                 e.message
             );
         }
+
+        if args.verbose {
+            if error_count == 0 {
+                eprintln!("  {}: OK", path.display());
+            } else {
+                eprintln!("  {}: {} error(s)", path.display(), error_count);
+            }
+            total_errors += error_count;
+        }
+    }
+
+    if args.verbose {
+        eprintln!("---");
+        eprintln!("Checked {} file(s), {} error(s)", files.len(), total_errors);
     }
 
     if !has_errors {

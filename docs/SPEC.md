@@ -104,6 +104,22 @@ Errors are written to stderr in the following format:
 
 If no errors are found, `All section numbers are valid.` is printed to stdout.
 
+### Verbose (`--verbose` / `-v`)
+
+Pass `--verbose` (or `-v`) to print per-file processing status and a final summary to stderr:
+
+```text
+Checking docs/intro.md...
+  docs/intro.md: OK
+Checking docs/spec.md...
+docs/spec.md:3: [TRAILING_DOT] ...
+  docs/spec.md: 1 error(s)
+---
+Checked 2 file(s), 1 error(s)
+```
+
+Normal error output and exit codes are unchanged. Verbose output is always written to stderr.
+
 ### JSON (`--json`)
 
 Pass `--json` to output results as JSON to stdout:
