@@ -120,6 +120,16 @@ Checked 2 file(s), 1 error(s)
 
 Per-file summaries (e.g., `docs/spec.md: OK`) are indented by two spaces to visually separate them from error lines. Normal error output and exit codes are unchanged. Verbose output is always written to stderr.
 
+### Fix (`--fix`)
+
+Pass `--fix` to automatically correct `TRAILING_DOT` and `SPACING` errors in place. After
+fixing, any remaining errors are reported to stderr and the exit code reflects them.
+
+Errors that require human judgment (`DEPTH_MISMATCH`, `MISSING_PARENT`, `ORDER`) are not
+modified.
+
+`--fix` cannot be combined with `--json`.
+
 ### JSON (`--json`)
 
 Pass `--json` to output results as JSON to stdout:
