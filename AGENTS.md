@@ -37,7 +37,10 @@ src/
 └── checker.rs    # Validation logic → CheckError
 ```
 
-See `docs/spec.md` for the full specification.
+See `docs/SPEC.md` for the full specification.
+See `docs/PATTERNS.md` for implementation patterns and gotchas.
+See `docs/TESTING.md` for the testing guide.
+See `docs/VALIDATION.md` for validation layer boundaries.
 
 ## Development Commands
 

@@ -8,3 +8,4 @@ elif
 esac
 pipefail
 serde
+coderabbitai
