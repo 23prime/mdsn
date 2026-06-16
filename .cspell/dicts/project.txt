@@ -9,3 +9,6 @@ esac
 pipefail
 serde
 coderabbitai
+flate
+reqwest
+rustls

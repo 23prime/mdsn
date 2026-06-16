@@ -10,3 +10,10 @@ glob = "0.3"
 ignore = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+self_update = { version = "0.44", default-features = false, features = [
+    "reqwest",
+    "archive-tar",
+    "archive-zip",
+    "compression-flate2",
+    "rustls",
+] }

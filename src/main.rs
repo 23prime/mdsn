@@ -1,6 +1,7 @@
 mod checker;
 mod extractor;
 mod fixer;
+mod self_update;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -24,6 +25,10 @@ struct Args {
     /// Auto-fix TRAILING_DOT and SPACING errors in place
     #[arg(long, conflicts_with = "json")]
     fix: bool,
+
+    /// Update mdsn to the latest release
+    #[arg(long)]
+    self_update: bool,
 }
 
 fn collect_files(patterns: &[String]) -> Result<Vec<PathBuf>> {
@@ -66,6 +71,11 @@ struct JsonOutput {
 
 fn run() -> Result<bool> {
     let args = Args::parse();
+
+    if args.self_update {
+        self_update::self_update()?;
+        return Ok(false);
+    }
 
     if args.patterns.is_empty() {
         eprintln!("Usage: mdsn <patterns...>");
@@ -169,5 +179,16 @@ fn main() {
             eprintln!("[ERROR] {e:#}");
             std::process::exit(2);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn self_update_flag_is_parsed() {
+        let args = Args::try_parse_from(["mdsn", "--self-update"]).unwrap();
+        assert!(args.self_update);
     }
 }
