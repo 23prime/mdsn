@@ -157,3 +157,14 @@ run = "cargo build --release"
 [tasks.rs-clean]
 description = "Clean Rust build artifacts"
 run = "cargo clean"
+
+# mise lock
+[tasks.lock-fix]
+description = "Update mise.lock"
+run = "mise lock"
+alias = "lf"
+
+[tasks.lock-check]
+description = "Check mise.lock is up to date"
+run = ["mise lock", "git diff --exit-code -- mise.lock"]
+alias = "lc"
