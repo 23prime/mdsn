@@ -12,3 +12,4 @@ coderabbitai
 flate
 reqwest
 rustls
+oneline
