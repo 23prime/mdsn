@@ -97,7 +97,7 @@ jobs:
         env:
           TARGET: ${{ matrix.target }}
         run: |
-          ./target/$env:TARGET/release/mdsn.exe --help | Out-Null
+          & "./target/$env:TARGET/release/mdsn.exe" --help | Out-Null
 
       - name: Package binary (tar)
         if: matrix.archive == 'tar'
