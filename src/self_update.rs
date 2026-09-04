@@ -10,7 +10,7 @@ pub fn self_update() -> Result<()> {
         .build()?
         .update()?;
 
-    if status.updated() {
+    if status.is_updated() {
         println!("Updated to {}", status.version());
     } else {
         println!("Already up to date ({})", status.version());
